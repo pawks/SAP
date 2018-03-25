@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <iomanip>
 #include <algorithm>
 #include "assembler.cpp"
 #define rsize 32
@@ -11,16 +12,18 @@ assembler::assembler(std::string a, std::string b)
     IP = a;
     OP = b;
 }
- int getval(std::string value)
+ int assembler::getval(std::string value)
  {
-     int n = value.length(), val = 0, i;
+     int n = value.length(), val = 0, i=0;
      while(n--)
      {
-        val += pow(10, n)*(value[n] - '0');
+        val += pow(10, n)*(value[i] - '0');
+        ++i;
         }
-    std::cout<<val<<"\n";
-    return val;
-
+    if(255 >= val >= 0)
+        return val;
+    else
+        return -1;
  }
  char assembler::getaddress(std::string ad)
  {
@@ -84,7 +87,8 @@ void assembler::assembly()
                 */
                 {
                     char addr = getaddress(line.substr(4, 7));
-                    std::cout<<addr<<"\n";
+                    //std::cout<<addr<<"\n";
+                    code[linecount+1] = addr;
                     if(addr == -1)
                         break;
                     else
@@ -92,7 +96,22 @@ void assembler::assembly()
                     Extracting value
                     */
                     {
-                        int val = getval(line.substr(9, line.end()-1));
+
+                        int val = getval(line.substr(9, line.length()));
+                        if(val != -1)
+                        {
+                            std::stringstream sstream;
+                            sstream << std::hex << val;
+                            std::string result = sstream.str();
+                            code[2*(int(addr - '0'))] = result[0];
+                            code[2*int(addr - '0') + 1] = result[1];
+
+                        }
+                        else
+                        {
+                            std::cout<<"Erroneous integer value";
+                            break;
+                        }
                     }
                 }
               }
@@ -107,7 +126,16 @@ void assembler::assembly()
 
  int main()
  {
-     assembler a("aprogram.txt", "sddfd.txt");
+     // aprogram.txt
+     std::string p;
+     std::cout<<"Enter the Input file name\n";
+     std::cin>>p;
+     std::cout<<"Assembly level code for the program ";
+     assembler a( p, "sddfd.txt");
      a.assembly();
-    return 0;
+     std::string ch;
+     std::cout<<"\nPress any key to exit";
+     std::cin>>ch;
+     exit(65);
+     return 0;
  }
